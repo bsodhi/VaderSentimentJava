@@ -7,8 +7,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Logger;
 
-import org.apache.log4j.Logger;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -31,7 +31,7 @@ import org.junit.Test;
 public class SentimentAnalyzerTest {
     private static final ClassLoader loader = SentimentAnalyzerTest.class.getClassLoader();
     private static List<String> testFiles = new ArrayList<>();
-    private static Logger logger = Logger.getLogger(SentimentAnalyzerTest.class);
+    private static Logger logger = Logger.getLogger(SentimentAnalyzerTest.class.getName());
 
     @BeforeClass
     public static void setUpTestFiles() {

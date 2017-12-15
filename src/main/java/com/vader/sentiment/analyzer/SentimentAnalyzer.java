@@ -31,9 +31,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.logging.Logger;
 
 import org.apache.commons.lang.StringUtils;
-import org.apache.log4j.Logger;
 
 import com.vader.sentiment.processor.TextProperties;
 import com.vader.sentiment.util.Constants;
@@ -57,7 +57,7 @@ public final class SentimentAnalyzer {
     /**
      * Logger for current class.
      */
-    private static Logger logger = Logger.getLogger(SentimentAnalyzer.class);
+    private static Logger logger = Logger.getLogger(SentimentAnalyzer.class.getName());
 
     /**
      * This is the input string that will be analyzed.
@@ -257,7 +257,7 @@ public final class SentimentAnalyzer {
         leftGramSequences.add(leftTriGramFromOnePrevious);
         leftGramSequences.add(leftBiGramFromTwoPrevious);
 
-        logger.debug("Grams: " + leftGramSequences);
+        logger.fine("Grams: " + leftGramSequences);
 
         float tempValence = currentValence;
 
@@ -314,8 +314,8 @@ public final class SentimentAnalyzer {
             final int currentItemPosition = wordsAndEmoticons.indexOf(currentItem);
             final String currentItemLower = currentItem.toLowerCase();
 
-            logger.debug("Current token, \"" + currentItem + "\" with index, i = " + currentItemPosition);
-            logger.debug("Sentiment State before \"kind of\" processing: " + sentiments);
+            logger.fine("Current token, \"" + currentItem + "\" with index, i = " + currentItemPosition);
+            logger.fine("Sentiment State before \"kind of\" processing: " + sentiments);
 
             /**
              * This section performs the following evaluation:
@@ -334,8 +334,8 @@ public final class SentimentAnalyzer {
                 continue;
             }
 
-            logger.debug("Sentiment State after \"kind of\" processing: " + sentiments);
-            logger.debug(String.format("Current Valence is %f for \"%s\"", currentValence, currentItem));
+            logger.fine("Sentiment State after \"kind of\" processing: " + sentiments);
+            logger.fine(String.format("Current Valence is %f for \"%s\"", currentValence, currentItem));
 
             /**
              * If current item in lowercase is in {@link Utils#WordValenceDictionary}...
@@ -343,8 +343,8 @@ public final class SentimentAnalyzer {
             if (Utils.getWordValenceDictionary().containsKey(currentItemLower)) {
                 currentValence = Utils.getWordValenceDictionary().get(currentItemLower);
 
-                logger.debug("Current currentItem isUpper(): " + Utils.isUpper(currentItem));
-                logger.debug("Current currentItem isCapDiff(): " + inputStringProperties.isCapDiff());
+                logger.fine("Current currentItem isUpper(): " + Utils.isUpper(currentItem));
+                logger.fine("Current currentItem isCapDiff(): " + inputStringProperties.isCapDiff());
 
                 /**
                  * If current item is all in uppercase and the input string has yelling words,
@@ -358,7 +358,7 @@ public final class SentimentAnalyzer {
                     }
                 }
 
-                logger.debug(String.format("Current Valence post all CAPS checks: %f", currentValence));
+                logger.fine(String.format("Current Valence post all CAPS checks: %f", currentValence));
 
                 /**
                  * "distance" is the window size.
@@ -380,10 +380,10 @@ public final class SentimentAnalyzer {
                         && !Utils.getWordValenceDictionary().containsKey(wordsAndEmoticons.get(closeTokenIndex)
                         .toLowerCase())) {
 
-                        logger.debug(String.format("Current Valence pre gramBasedValence: %f", currentValence));
+                        logger.fine(String.format("Current Valence pre gramBasedValence: %f", currentValence));
                         float gramBasedValence =
                             valenceModifier(wordsAndEmoticons.get(closeTokenIndex), currentValence);
-                        logger.debug(String.format("Current Valence post gramBasedValence: %f", currentValence));
+                        logger.fine(String.format("Current Valence post gramBasedValence: %f", currentValence));
 
                         /**
                          * At distance of 1, reduce current gram's valence by 5%.
@@ -397,18 +397,18 @@ public final class SentimentAnalyzer {
                             }
                         }
                         currentValence += gramBasedValence;
-                        logger.debug(String.format("Current Valence post gramBasedValence and "
+                        logger.fine(String.format("Current Valence post gramBasedValence and "
                             + "distance based damping: %f", currentValence));
 
                         currentValence = checkForNever(currentValence, distance, currentItemPosition, closeTokenIndex);
-                        logger.debug(String.format("Current Valence post \"never\" check: %f", currentValence));
+                        logger.fine(String.format("Current Valence post \"never\" check: %f", currentValence));
 
                         /**
                          * At a distance of 2, we check for idioms in bi-grams and tri-grams around currentItemPosition.
                          */
                         if (distance == 2) {
                             currentValence = checkForIdioms(currentValence, currentItemPosition);
-                            logger.debug(String.format("Current Valence post Idiom check: %f", currentValence));
+                            logger.fine(String.format("Current Valence post Idiom check: %f", currentValence));
                         }
                     }
                     distance++;
@@ -419,9 +419,9 @@ public final class SentimentAnalyzer {
             sentiments.add(currentValence);
         }
 
-        logger.debug("Sentiment state after first pass through tokens: " + sentiments);
+        logger.fine("Sentiment state after first pass through tokens: " + sentiments);
         sentiments = checkConjunctionBut(wordsAndEmoticons, sentiments);
-        logger.debug("Sentiment state after checking conjunctions: " + sentiments);
+        logger.fine("Sentiment state after checking conjunctions: " + sentiments);
 
         return sentiments;
     }
@@ -472,7 +472,7 @@ public final class SentimentAnalyzer {
                 totalValence += valence;
             }
 
-            logger.debug("Total valence: " + totalValence);
+            logger.fine("Total valence: " + totalValence);
 
             /**
              * Adjust the total valence score on the basis of the punctuations in the input string.
@@ -485,15 +485,15 @@ public final class SentimentAnalyzer {
                 totalValence -= punctuationAmplifier;
             }
 
-            logger.debug("Total valence after boost/damp by punctuation: " + totalValence);
-            logger.debug("Final token-wise sentiment state: " + tokenWiseSentimentState);
+            logger.fine("Total valence after boost/damp by punctuation: " + totalValence);
+            logger.fine("Final token-wise sentiment state: " + tokenWiseSentimentState);
 
             final List<Float> siftedScores = siftSentimentScores(tokenWiseSentimentState);
             float positiveSentimentScore = siftedScores.get(0);
             float negativeSentimentScore = siftedScores.get(1);
             final int neutralSentimentCount = Math.round(siftedScores.get(2));
 
-            logger.debug(String.format("Post Sift Sentiment Scores: %s %s %s",
+            logger.fine(String.format("Post Sift Sentiment Scores: %s %s %s",
                 positiveSentimentScore,
                 negativeSentimentScore,
                 neutralSentimentCount
@@ -508,11 +508,11 @@ public final class SentimentAnalyzer {
             final float normalizationFactor = positiveSentimentScore + Math.abs(negativeSentimentScore)
                 + neutralSentimentCount;
 
-            logger.debug("Normalization Factor: " + normalizationFactor);
+            logger.fine("Normalization Factor: " + normalizationFactor);
 
             final float compoundPolarity = normalizeScore(totalValence);
 
-            logger.debug(String.format("Pre-Normalized Scores: %s %s %s %s",
+            logger.fine(String.format("Pre-Normalized Scores: %s %s %s %s",
                 Math.abs(positiveSentimentScore),
                 Math.abs(negativeSentimentScore),
                 Math.abs(neutralSentimentCount),
@@ -523,7 +523,7 @@ public final class SentimentAnalyzer {
             final float absoluteNegativePolarity = Math.abs(negativeSentimentScore / normalizationFactor);
             final float absoluteNeutralPolarity = Math.abs(neutralSentimentCount / normalizationFactor);
 
-            logger.debug(String.format("Pre-Round Scores: %s %s %s %s",
+            logger.fine(String.format("Pre-Round Scores: %s %s %s %s",
                 absolutePositivePolarity,
                 absoluteNegativePolarity,
                 absoluteNeutralPolarity,
